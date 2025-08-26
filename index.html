@@ -1,9 +1,17 @@
 <!doctype html>
 <html lang="tr">
-<head>
+  <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BarisHA WEB TV</title>
+
+  <!-- PWA eklemeleri -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#000000">
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     :root{ --bg:#000; --panel:#111; --muted:#bbb; --card:#1a1a1a; --white:#fff; --border:#2a2a2a; }
@@ -256,6 +264,12 @@ $('btnShare').onclick = ()=>{
   window.open(links.X, '_blank');
   alert('Diğer paylaşım bağlantıları:\nWhatsApp: '+links.WhatsApp+'\nTelegram: '+links.Telegram+'\nFacebook: '+links.Facebook+'\nInstagram için: bağlantıyı kopyalayıp paylaşımına ekle.');
 };
+  if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  });
+}
+
 </script>
 </body>
 </html>
