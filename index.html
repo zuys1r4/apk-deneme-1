@@ -1,275 +1,184 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="tr">
-  <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BarisHA WEB TV</title>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BarisHA TV</title>
 
-  <!-- PWA eklemeleri -->
-  <link rel="manifest" href="./manifest.webmanifest">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#000000">
 
+  <!-- HLS (m3u8) desteği -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
   <style>
-    
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <style>
-    :root{ --bg:#000; --panel:#111; --muted:#bbb; --card:#1a1a1a; --white:#fff; --border:#2a2a2a; }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:var(--bg);color:var(--white);display:flex;flex-direction:column}
+    :root{ --bg:#000; --panel:#111; --white:#fff; --muted:#bbb; }
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{
+      margin:0; background:var(--bg); color:var(--white);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
+      padding:24px;
+    }
+    header{ background:#111; padding:16px 20px; border-radius:12px; font-size:20px; }
+    .bar{ margin:16px 0; display:flex; gap:10px; flex-wrap:wrap; }
+    input[type=text]{
+      flex:1; min-width:280px; padding:14px 16px; border-radius:12px; border:1px solid #222;
+      background:#0c0c0c; color:#fff; font-size:16px;
+    }
+    button{
+      padding:14px 16px; border-radius:12px; border:1px solid #222; background:#fff; color:#000;
+      font-weight:700; cursor:pointer; font-size:16px;
+    }
+    button:focus, input:focus{ outline:3px solid #fff; outline-offset:2px }
+    .stage{ display:grid; place-items:center; margin-top:8px }
+    .frame{
+      width:96vw; max-width:1280px; aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden;
+    }
+    video, iframe{ width:100%; height:100%; display:block; background:#000 }
+    iframe{ border:0 }
+    .hint{ color:var(--muted); margin-top:8px; font-size:14px }
 
-    /* TOP BAR */
-    .topbar{display:flex;gap:8px;align-items:center;padding:12px;border-bottom:1px solid var(--border);background:var(--panel)}
-    .title{font-weight:800;margin-right:8px;display:flex;align-items:center;gap:10px}
-    .topbar input[type=text]{flex:1;min-width:140px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#0c0c0c;color:#fff}
-    .btn{appearance:none;border:1px solid var(--border);background:#0c0c0c;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer}
-    .btn.primary{background:#fff;color:#000;border-color:#fff}
-    .status{margin-left:8px;color:var(--muted);font-size:12px}
-    input[type=file]{display:none}
-    label.btn{display:inline-flex;align-items:center;gap:6px}
-
-    /* LAYOUT */
-    .app{flex:1;display:grid;grid-template-columns:240px 1fr 440px;gap:12px;padding:12px}
-    @media (max-width:1100px){ .app{grid-template-columns:200px 1fr 360px} }
-    @media (max-width:900px){ .app{grid-template-columns:1fr} .player-col{order:-1} }
-
-    /* LEFT: CATEGORY TABS */
-    .sidebar{background:var(--panel);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;min-height:0}
-    .side-head{padding:10px;border-bottom:1px solid var(--border)}
-    .side-head input{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0c0c0c;color:#fff}
-    .groups{overflow:auto;min-height:0}
-    .tab{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer}
-    .tab:hover,.tab.active{background:#fff;color:#000}
-    .count{opacity:.8;font-size:12px}
-
-    /* MIDDLE: CHANNEL GRID */
-    .grid-col{background:#000;border:1px solid var(--border);border-radius:12px;min-height:0;display:flex;flex-direction:column}
-    .grid-head{padding:10px;border-bottom:1px solid var(--border);display:flex;gap:8px}
-    .grid-head input{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0c0c0c;color:#fff}
-    .grid{flex:1;overflow:auto;padding:12px;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));background:#000;border-radius:0 0 12px 12px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;align-items:center;cursor:pointer;transition:.15s}
-    .card:hover{background:#fff;color:#000}
-    .logo{width:100%;height:90px;border-radius:8px;display:grid;place-items:center;background:#fff;color:#000;overflow:hidden}
-    .logo img{width:100%;height:100%;object-fit:contain}
-    .name{font-weight:700;text-align:center}
-    .meta{font-size:12px;opacity:.8}
-
-    /* RIGHT: PLAYER (SQUARE) */
-    .player-col{background:var(--panel);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;gap:10px;padding:10px}
-    .square{width:100%;aspect-ratio:1/1;background:#000;border-radius:12px;display:flex;align-items:center;justify-content:center}
-    video{width:100%;height:100%;background:#000;border-radius:12px;object-fit:contain}
-    .np{font-size:14px;color:var(--muted)}
-    .row{display:flex;gap:8px;justify-content:space-between;align-items:center}
-    .stats span{margin-right:6px}
+    /* TV/10-foot için biraz büyütmeler */
+    @media (min-width:1200px) and (min-height:680px){
+      body{ font-size:18px }
+      header{ font-size:22px }
+      button,input{ font-size:18px }
+    }
   </style>
 </head>
 <body>
-  <!-- TOP BAR WITH M3U INPUT -->
-  <div class="topbar">
-    <div class="title">
-      <img src="./logo.png" alt="BarisHA WEB TV" style="height:28px;width:auto;border-radius:4px;background:#fff;padding:2px"/>
-      <span>BarisHA WEB TV</span>
-    </div>
-    <input id="m3uUrl" type="text" placeholder="M3U URL yapıştır (raw GitHub → otomatik jsDelivr)" />
-    <button id="btnLoad" class="btn primary">Yükle</button>
-    <label for="fileInput" class="btn">Dosya</label>
-    <input id="fileInput" type="file" accept=".m3u,.m3u8,.txt" />
-    <button id="btnPaste" class="btn">Yapıştır</button>
-    <span id="status" class="status"></span>
+  <header>📺 BarisHA TV — IPTV + YouTube oynatıcı</header>
+
+  <div class="bar">
+    <input id="m3uInput" type="text" placeholder="M3U kanal linki ya da YouTube linki (watch/shorts/live/youtu.be) yapıştır">
+    <button id="loadBtn" tabindex="0">Yükle</button>
   </div>
 
-  <div class="app">
-    <!-- LEFT: CATEGORY TABS -->
-    <aside class="sidebar">
-      <div class="side-head">
-        <input id="groupSearch" type="text" placeholder="Kategorilerde ara" />
-      </div>
-      <div id="groupList" class="groups"></div>
-    </aside>
-
-    <!-- MIDDLE: CHANNEL GRID -->
-    <section class="grid-col">
-      <div class="grid-head">
-        <input id="q" type="text" placeholder="Kanal ara" />
-      </div>
-      <div id="grid" class="grid"></div>
-    </section>
-
-    <!-- RIGHT: SQUARE PLAYER COLUMN -->
-    <section class="player-col">
-      <div class="square"><video id="video" controls playsinline></video></div>
-      <div class="np" id="nowPlaying">Hazır</div>
-      <div class="row">
-        <div class="stats">
-          <span id="onlineNow">Çevrimiçi: 0</span>
-          <span style="opacity:.6">•</span>
-          <span id="visitsToday">Bugün: 0</span>
-          <span style="opacity:.6">•</span>
-          <span id="visitsTotal">Toplam: 0</span>
-        </div>
-        <div class="actions">
-          <button id="btnFs" class="btn">Tam ekran</button>
-          <button id="btnShare" class="btn">Paylaş</button>
-        </div>
-      </div>
-    </section>
+  <div class="stage">
+    <div class="frame">
+      <!-- Normal akışlar için -->
+      <video id="player" controls playsinline></video>
+      <!-- YouTube için -->
+      <iframe id="yt" style="display:none"
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+        referrerpolicy="origin-when-cross-origin">
+      </iframe>
+    </div>
+    <div class="hint">İpucu: m3u8/MP4 linkleri video ile, YouTube linkleri iframe ile oynatılır.</div>
   </div>
 
 <script>
-let ALL = []; // tüm kanallar
-let FILTER = {group:"", q:""};
-let hls=null;
+  // === Yardımcılar ===
+  const $ = s => document.querySelector(s);
+  const input = $('#m3uInput');
+  const btn   = $('#loadBtn');
+  const video = $('#player');
+  const yt    = $('#yt');
+  let hls = null;
 
-const $ = id=>document.getElementById(id);
-function setStatus(msg){ $('status').textContent = msg||''; }
+  function isHls(u){ return /\.m3u8(\?|$)/i.test(u); }
+  function isYouTube(u){ return /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(u); }
 
-// RAW -> jsDelivr
-function rawToJsDelivr(url){
-  if(!/raw\.githubusercontent\.com/.test(url)) return url;
-  try{
-    const u = new URL(url);
-    const p = u.pathname.split('/').filter(Boolean);
-    const user=p[0], repo=p[1];
-    let branch, idx;
-    if(p[2]==='refs' && p[3]==='heads'){ branch=p[4]; idx=5; }
-    else { branch=p[2]; idx=3; }
-    const path = p.slice(idx).join('/');
-    return `https://cdn.jsdelivr.net/gh/${user}/${repo}@${branch}/${path}`;
-  }catch{ return url; }
-}
-
-// Basit M3U parser
-function parseM3U(text){
-  const out=[]; let last=null;
-  const attr=/(\w[\w-]*)\s*=\s*"([^"]*)"/g;
-  for(const line of text.split(/\r?\n/)){
-    const s=line.trim(); if(!s) continue;
-    if(s.startsWith('#EXTINF')){
-      const m={}; let t; while((t=attr.exec(s))){ m[t[1]]=t[2]; }
-      const name = s.includes(',') ? s.split(',').pop().trim() : '';
-      last = { name, group: (m['group-title']||'Genel'), logo: (m['tvg-logo']||''), attrs:m };
-    }else if(!s.startsWith('#')){
-      if(last){ out.push({...last, url:s}); last=null; }
-    }
+  // YouTube video ID çıkarma (watch?v=, youtu.be/, /live/, /shorts/)
+  function youtubeId(url){
+    try{
+      const u = new URL(url);
+      const host = u.hostname.replace(/^www\./,'');
+      if (host === 'youtu.be'){
+        // https://youtu.be/VIDEOID?t=123
+        return u.pathname.split('/')[1];
+      }
+      if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com'){
+        // /watch?v=, /live/VIDEOID, /shorts/VIDEOID
+        if (u.searchParams.get('v')) return u.searchParams.get('v');
+        const parts = u.pathname.split('/').filter(Boolean);
+        // /live/ID veya /shorts/ID
+        if (parts[0] === 'live'   && parts[1]) return parts[1];
+        if (parts[0] === 'shorts' && parts[1]) return parts[1];
+      }
+    }catch(e){}
+    return null;
   }
-  return out;
-}
 
-function render(){
-  // Arama & grup filtreleme
-  const q = FILTER.q.toLocaleLowerCase('tr');
-  const g = FILTER.group;
-  const filtered = ALL.filter(ch=>{
-    const okQ = !q || `${ch.name} ${ch.group}`.toLocaleLowerCase('tr').includes(q);
-    const okG = !g || ch.group===g;
-    return okQ && okG;
+  function destroyHls(){ if(hls){ try{ hls.destroy(); }catch{} hls = null; } }
+
+  // Normal (HLS/MP4) oynatma
+  function playVideo(url){
+    // video aktif, yt gizli
+    yt.style.display = 'none';
+    yt.src = 'about:blank';
+
+    destroyHls();
+    video.pause();
+    if (window.Hls && Hls.isSupported() && isHls(url)){
+      hls = new Hls({lowLatencyMode:true});
+      hls.loadSource(url);
+      hls.attachMedia(video);
+    }else{
+      video.src = url;
+    }
+    video.style.display = 'block';
+    video.play().catch(()=>{});
+  }
+
+  // YouTube gömme
+  function playYouTube(url){
+    const id = youtubeId(url);
+    if(!id){ alert('YouTube bağlantısı çözümlenemedi. Lütfen tam video bağlantısı kullanın.'); return; }
+
+    // video gizli, yt aktif
+    destroyHls();
+    video.pause();
+    video.style.display = 'none';
+
+    // TV/PIP/Autoplay dostu embed URL
+    const embed = `https://www.youtube.com/embed/${id}?autoplay=1&playsinline=1&modestbranding=1&rel=0`;
+    yt.src = embed;
+    yt.style.display = 'block';
+  }
+
+  function playUrl(url){
+    if(!url){ alert('Lütfen bir link girin.'); return; }
+    if (isYouTube(url)) playYouTube(url);
+    else playVideo(url);
+  }
+
+  // UI olayları
+  btn.addEventListener('click', ()=> playUrl(input.value.trim()));
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') btn.click(); });
+
+  // TV kumandası: basit DPAD odak
+  const focusables = [input, btn];
+  let fIndex = 0; focusables[fIndex].focus();
+  document.addEventListener('keydown', (e)=>{
+    if (['ArrowRight','ArrowDown'].includes(e.key)){
+      fIndex = (fIndex + 1) % focusables.length; focusables[fIndex].focus(); e.preventDefault();
+    }else if (['ArrowLeft','ArrowUp'].includes(e.key)){
+      fIndex = (fIndex - 1 + focusables.length) % focusables.length; focusables[fIndex].focus(); e.preventDefault();
+    }else if (e.key === 'Enter'){ document.activeElement?.click(); }
+    else if (e.key === 'Backspace' || e.key === 'Escape'){
+      try{ if(document.fullscreenElement) document.exitFullscreen(); }catch{}
+    }else if (e.key === 'MediaPlayPause'){
+      try{ video.paused ? video.play() : video.pause(); }catch{}
+    }
   });
 
-  // Kanal grid
-  const grid=$('grid');
-  grid.innerHTML='';
-  const frag=document.createDocumentFragment();
-  filtered.forEach(ch=>{
-    const card=document.createElement('div'); card.className='card'; card.onclick=()=>play(ch);
-    const logo=document.createElement('div'); logo.className='logo';
-    if(ch.logo){ const img=new Image(); img.src=ch.logo; logo.appendChild(img); } else { logo.textContent='LOGO'; }
-    const name=document.createElement('div'); name.className='name'; name.textContent=ch.name||'Kanal';
-    const meta=document.createElement('div'); meta.className='meta'; meta.textContent=ch.group||'Genel';
-    card.append(logo,name,meta); frag.appendChild(card);
-  });
-  grid.appendChild(frag);
+  // Ekranı açık tut (olanak varsa)
+  let _wl;
+  async function keepScreenOn(){
+    try{ _wl = await navigator.wakeLock.request('screen'); }catch{}
+  }
+  window.addEventListener('load', keepScreenOn);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) keepScreenOn(); });
 
-  // Kategoriler (solda sekmeler)
-  const groupsEl=$('groupList');
-  const counts = {};
-  for(const c of ALL){ counts[c.group] = (counts[c.group]||0)+1; }
-  const groups=[['TÜMÜ', ALL.length], ...Object.entries(counts).sort((a,b)=>a[0].localeCompare(b[0],'tr'))];
-  groupsEl.innerHTML='';
-  groups.forEach(([name,count])=>{
-    const row=document.createElement('div'); row.className='tab'+(FILTER.group===(name==='TÜMÜ'?'':name)?' active':'');
-    const left=document.createElement('div'); left.textContent=name;  // klasör adı gibi
-    const right=document.createElement('div'); right.className='count'; right.textContent=count;
-    row.append(left,right);
-    row.onclick=()=>{ FILTER.group = (name==='TÜMÜ'?'':name); render(); };
-    groupsEl.appendChild(row);
-  });
-}
-
-function destroyHls(){ if(hls){ try{hls.destroy();}catch{} hls=null; } }
-function isHls(u){ return /\.m3u8(\?|$)/i.test(u); }
-function play(ch){
-  const v=$('video');
-  destroyHls(); v.pause();
-  if(Hls.isSupported() && isHls(ch.url)){
-    hls=new Hls({enableWorker:true,lowLatencyMode:true});
-    hls.loadSource(ch.url); hls.attachMedia(v);
-  }else{ v.src=ch.url; }
-  v.play().catch(()=>{});
-  $('nowPlaying').textContent = `Şimdi: ${ch.name}`;
-}
-
-async function loadFromUrl(raw){
-  try{
-    setStatus('Yükleniyor…');
-    const url = rawToJsDelivr(raw.trim());
-    const res = await fetch(url, {cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const text = await res.text();
-    ALL = parseM3U(text);
-    FILTER.q=''; FILTER.group='';
-    $('groupSearch').value=''; $('q').value='';
-    render();
-    setStatus(`${ALL.length} kanal yüklendi`);
-    saveRecent(url);
-  }catch(e){ console.error(e); setStatus('Yüklenemedi (CORS/URL/biçim).'); }
-}
-
-function loadFromText(txt){ ALL=parseM3U(txt); FILTER.q=''; FILTER.group=''; render(); setStatus(`${ALL.length} kanal (yapıştırıldı)`); }
-function loadFromFile(file){ const r=new FileReader(); r.onload=e=>loadFromText(String(e.target.result||'')); r.readAsText(file); }
-function saveRecent(u){ try{ const k='recentPlaylists'; const a=JSON.parse(localStorage.getItem(k)||'[]'); if(!a.includes(u)) a.unshift(u); localStorage.setItem(k, JSON.stringify(a.slice(0,8))); }catch{} }
-
-$('btnLoad').onclick = ()=>{ const u=$('m3uUrl').value.trim(); if(!u) return setStatus('M3U URL gir'); loadFromUrl(u); };
-$('m3uUrl').addEventListener('keydown', e=>{ if(e.key==='Enter') $('btnLoad').click(); });
-$('fileInput').addEventListener('change', e=>{ const f=e.target.files?.[0]; if(f) loadFromFile(f); });
-$('btnPaste').onclick = async ()=>{ try{ const t=await navigator.clipboard.readText(); if(t) loadFromText(t); else setStatus('Panoda metin yok'); }catch{ setStatus('Pano izni gerekli'); } };
-$('q').addEventListener('input', e=>{ FILTER.q=e.target.value||''; render(); });
-$('groupSearch').addEventListener('input', e=>{ /* kategori araması istenirse burada filtreleyebilirsin */ });
-
-// Sürükle-bırak
-window.addEventListener('dragover', e=>{ e.preventDefault(); });
-window.addEventListener('drop', e=>{ e.preventDefault(); const f=e.dataTransfer?.files?.[0]; if(f) loadFromFile(f); });
-
-/* ===== Sayaçlar & Paylaşım ===== */
-const NS = 'barisha_web_tv_' + (location.hostname + location.pathname).replace(/[^\w]/g,'_');
-const cpx = (path)=>fetch('https://api.countapi.xyz/'+path).then(r=>r.json()).catch(()=>null);
-function setOnline(v){ if(v<0) v=0; $('onlineNow').textContent = 'Çevrimiçi: ' + v; }
-async function onlineChange(delta){ const r = await cpx(`update/${NS}/online?amount=${delta}`); if(r&&r.value!=null) setOnline(r.value); }
-async function refreshOnline(){ const r = await cpx(`get/${NS}/online`); if(r&&r.value!=null) setOnline(r.value); }
-async function bumpVisits(){ const today = new Date().toISOString().slice(0,10); const k='visited_'+today; if(!localStorage.getItem(k)){ await cpx(`hit/${NS}/total`); await cpx(`hit/${NS}/${today}`); localStorage.setItem(k,'1'); } const total = await cpx(`get/${NS}/total`); const daily = await cpx(`get/${NS}/${today}`); if(total&&total.value!=null) $('visitsTotal').textContent = 'Toplam: ' + total.value; if(daily&&daily.value!=null) $('visitsToday').textContent = 'Bugün: ' + daily.value; }
-window.addEventListener('load', ()=>{ onlineChange(1); bumpVisits(); });
-window.addEventListener('beforeunload', ()=>{ try{ navigator.sendBeacon(`https://api.countapi.xyz/update/${NS}/online?amount=-1`); }catch{} });
-setInterval(refreshOnline, 15000);
-
-$('btnFs').onclick = ()=>{ if(document.fullscreenElement){ document.exitFullscreen(); } else { document.documentElement.requestFullscreen(); } };
-$('btnShare').onclick = ()=>{
-  const url = location.href; const title = 'BarisHA WEB TV – Online izle';
-  if(navigator.share){ navigator.share({title, text:title, url}); return; }
-  const links = {
-    X: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-    WhatsApp: `https://wa.me/?text=${encodeURIComponent(title+' '+url)}`,
-    Telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
-    Facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`
-  };
-  window.open(links.X, '_blank');
-  alert('Diğer paylaşım bağlantıları:\nWhatsApp: '+links.WhatsApp+'\nTelegram: '+links.Telegram+'\nFacebook: '+links.Facebook+'\nInstagram için: bağlantıyı kopyalayıp paylaşımına ekle.');
-};
+  // Service worker kaydı (PWA)
   if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(()=>{});
-  });
-}
-
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(()=>{});
+    });
+  }
 </script>
 </body>
 </html>
