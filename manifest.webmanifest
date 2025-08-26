@@ -1,28 +1,37 @@
 {
-  "name": "BarisHA WEB TV",
+  "name": "BarisHA TV",
   "short_name": "BarisHA TV",
   "description": "BarisHA WEB TV ile IPTV yayınlarını izleyin.",
-  "id": "io.github.zuys1r4.barishatv",
-  "start_url": "/apk-deneme-1/",
+  "start_url": ".",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#000000",
+  "orientation": "any",
+  "id": "barisha-tv",
   "icons": [
     {
       "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ],
-  "launch_handler": {
-    "client_mode": "focus-existing"
-  }
+  ]
 }
