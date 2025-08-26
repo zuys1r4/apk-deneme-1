@@ -1,13 +1,12 @@
 {
   "name": "BarisHA TV",
   "short_name": "BarisHA TV",
-  "description": "BarisHA WEB TV ile IPTV yayınlarını izleyin.",
-  "start_url": ".",
-  "display": "standalone",
+  "start_url": "/apk-deneme-1/",
+  "id": "barisha-tv",
+  "display": "fullscreen",
+  "orientation": "landscape",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "orientation": "any",
-  "id": "barisha-tv",
   "icons": [
     {
       "src": "icon-192.png",
